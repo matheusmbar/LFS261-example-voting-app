@@ -1,31 +1,33 @@
 var express = require('express'),
     async = require('async'),
-    pg = require("pg"),
+    { Pool } = require("pg"),
     path = require("path"),
     cookieParser = require('cookie-parser'),
     bodyParser = require('body-parser'),
     methodOverride = require('method-override'),
     app = express(),
     server = require('http').Server(app),
-    io = require('socket.io')(server);
-
-io.set('transports', ['polling']);
+    io = require('socket.io')(server, {
+      transports: ['polling']
+    });
 
 var port = process.env.PORT || 4000;
 
-io.sockets.on('connection', function (socket) {
-
+io.on('connection', function (socket) {
   socket.emit('message', { text : 'Welcome!' });
-
   socket.on('subscribe', function (data) {
     socket.join(data.channel);
   });
 });
 
+const pool = new Pool({
+  connectionString: 'postgres://postgres@db/postgres'
+});
+
 async.retry(
   {times: 1000, interval: 1000},
   function(callback) {
-    pg.connect('postgres://postgres@db/postgres', function(err, client, done) {
+    pool.connect((err, client, done) => {
       if (err) {
         console.error("Waiting for db");
       }
@@ -49,18 +51,15 @@ function getVotes(client) {
       var votes = collectVotesFromResult(result);
       io.sockets.emit("scores", JSON.stringify(votes));
     }
-
     setTimeout(function() {getVotes(client) }, 1000);
   });
 }
 
 function collectVotesFromResult(result) {
   var votes = {a: 0, b: 0};
-
   result.rows.forEach(function (row) {
     votes[row.vote] = parseInt(row.count);
   });
-
   return votes;
 }
 
