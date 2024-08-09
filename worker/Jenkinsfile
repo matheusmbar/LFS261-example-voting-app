@@ -41,6 +41,16 @@ pipeline {
         }
       }
     }
+    stage('docker-package'){
+      agent any
+      steps {
+        echo 'Packaging worker app with Docker'
+        script {
+          def workerImage = docker.build("matheus/worker:v${env.BUILD_ID}", "./worker")
+          echo "Image: ${workerImage}"
+        }
+      }
+    }
   }
   post {
     always {
