@@ -2,9 +2,10 @@ pipeline {
   agent none
   stages {
     stage("build") {
-      agent any
-      tools {
-        nodejs 'NodeJS 22.5.1'
+      agent {
+        docker {
+          image 'node:22.4.0-alpine'
+        }
       }
       when{
         changeset "**/result/**"
@@ -17,9 +18,10 @@ pipeline {
       }
     }
     stage("test") {
-      agent any
-      tools {
-        nodejs 'NodeJS 22.5.1'
+      agent {
+        docker {
+          image 'node:22.4.0-alpine'
+        }
       }
       when{
         changeset "**/result/**"
@@ -34,15 +36,19 @@ pipeline {
     }
     stage('docker-package'){
       agent any
+      when {
+        changeset '**/result/**'
+        branch 'master'
+      }
       steps {
         echo 'Packaging result app with Docker'
         script {
           docker.withRegistry('https://index.docker.io/v1/','dockerlogin') {
             def imageName = "matheusmbar/result:v${env.BUILD_ID}"
             echo "Image name: ${imageName}"
-            def workerImage = docker.build("${imageName}", "./result")
-            workerImage.push()
-            workerImage.push("latest")
+            def resultImage = docker.build("${imageName}", "./result")
+            resultImage.push()
+            resultImage.push("latest")
           }
         }
       }
