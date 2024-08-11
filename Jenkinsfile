@@ -2,7 +2,7 @@ pipeline {
   agent none
 
   stages {
-    
+
     stage('worker-build') {
       agent {
         docker {
@@ -167,19 +167,19 @@ pipeline {
       }
     }
 
-    stage('vote integration'){ 
-      agent any 
-      when{ 
-        changeset "**/vote/**" 
-        branch 'master' 
-      } 
-      steps{ 
-        echo 'Running Integration Tests on vote app' 
-        dir('vote'){ 
-          sh 'sh integration_test.sh' 
-        } 
-      } 
-    } 
+    stage('vote integration'){
+      agent any
+      when{
+        changeset "**/vote/**"
+        branch 'master'
+      }
+      steps{
+        echo 'Running Integration Tests on vote app'
+        dir('vote'){
+          sh 'sh integration_test.sh'
+        }
+      }
+    }
 
     stage('vote-docker-package') {
       agent any
@@ -211,7 +211,7 @@ pipeline {
       }
     }
   }
-  
+
   post {
     always {
       echo 'Building mono pipeline for voting app is completed.'
