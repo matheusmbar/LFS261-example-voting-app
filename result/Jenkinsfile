@@ -2,9 +2,10 @@ pipeline {
   agent none
   stages {
     stage("build") {
-      agent any
-      tools {
-        nodejs 'NodeJS 22.5.1'
+      agent {
+        docker {
+          image 'node:22.4.0-alpine'
+        }
       }
       when{
         changeset "**/result/**"
@@ -17,9 +18,10 @@ pipeline {
       }
     }
     stage("test") {
-      agent any
-      tools {
-        nodejs 'NodeJS 22.5.1'
+      agent {
+        docker {
+          image 'node:22.4.0-alpine'
+        }
       }
       when{
         changeset "**/result/**"
