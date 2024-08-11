@@ -9,11 +9,10 @@ var express = require('express'),
     server = require('http').Server(app),
     io = require('socket.io')(server);
 
-io.set('transports', ['polling']);
-
 var port = process.env.PORT || 4000;
 
 io.sockets.on('connection', function (socket) {
+  socket.io.opts.transports = ["polling"];
 
   socket.emit('message', { text : 'Welcome!' });
 
@@ -22,10 +21,17 @@ io.sockets.on('connection', function (socket) {
   });
 });
 
+
+var connectionString = "";
+var parse = require('pg-connection-string').parse;
+var connectionString = "postgres://postgres@db/postgres";
+var config = parse(connectionString);
+const pool = new pg.Pool(config);
+
 async.retry(
   {times: 1000, interval: 1000},
   function(callback) {
-    pg.connect('postgres://postgres@db/postgres', function(err, client, done) {
+    pool.connect(function (err, client, done) {
       if (err) {
         console.error("Waiting for db");
       }
