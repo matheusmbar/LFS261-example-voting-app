@@ -3,15 +3,19 @@ pipeline {
   stages {
     stage('docker-package'){
       agent any
+      when {
+        changeset '**/vote/**'
+        branch 'master'
+      }
       steps {
         echo 'Packaging vote app with Docker'
         script {
           docker.withRegistry('https://index.docker.io/v1/','dockerlogin') {
             def imageName = "matheusmbar/vote:v${env.BUILD_ID}"
             echo "Image name: ${imageName}"
-            def workerImage = docker.build("${imageName}", "./vote")
-            workerImage.push()
-            workerImage.push("latest")
+            def voteImage = docker.build("${imageName}", "./vote")
+            voteImage.push()
+            voteImage.push("latest")
           }
         }
       }
